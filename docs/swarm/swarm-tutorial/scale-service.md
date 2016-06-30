@@ -51,7 +51,7 @@ service running in the swarm:
 
     You can see that swarm has created 4 new tasks to scale to a total of 5
     running instances of Alpine Linux. The tasks are distributed between the
-    three nodes of the swarm. Two are running on `manager1`.
+    three nodes of the swarm. One is running on `manager1`.
 
 4. Run `docker ps` to see the containers running on the node where you're
 connected. The following example shows the tasks running on `manager1`:
@@ -70,5 +70,3 @@ connected. The following example shows the tasks running on `manager1`:
 
 At this point in the tutorial, you're finished with the `helloworld` service.
 The next step shows how to [delete the service](delete-service.md).
-
-<p style="margin-bottom:300px">&nbsp;</p>

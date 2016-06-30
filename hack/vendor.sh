@@ -43,7 +43,7 @@ esac
 
 # the following lines are in sorted order, FYI
 clone git github.com/Azure/go-ansiterm 388960b655244e76e24c75f48631564eaefade62
-clone git github.com/Microsoft/hcsshim v0.3.5
+clone git github.com/Microsoft/hcsshim v0.3.6
 clone git github.com/Microsoft/go-winio v0.3.4
 clone git github.com/Sirupsen/logrus v0.10.0 # logrus is a common dependency among multiple deps
 clone git github.com/docker/libtrust 9cbd2a1374f46905c68a4eb3694a130610adc62a
@@ -136,7 +136,7 @@ clone git google.golang.org/cloud dae7e3d993bc3812a2185af60552bb6b847e52a0 https
 clone git github.com/docker/docker-credential-helpers v0.3.0
 
 # containerd
-clone git github.com/docker/containerd 860f3a94940894ac0a106eff4bd1616a67407ee2
+clone git github.com/docker/containerd b93a33be39bc4ef0fb00bfcb79147a28c33d9d43
 
 # cluster
 clone git github.com/docker/swarmkit 3f135f206179ea157aeef2d1d401eb795f618da8

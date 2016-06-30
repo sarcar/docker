@@ -160,6 +160,13 @@ func (m *MountOpt) Set(value string) error {
 		return mount.VolumeOptions
 	}
 
+	bindOptions := func() *swarm.BindOptions {
+		if mount.BindOptions == nil {
+			mount.BindOptions = new(swarm.BindOptions)
+		}
+		return mount.BindOptions
+	}
+
 	setValueOnMap := func(target map[string]string, value string) {
 		parts := strings.SplitN(value, "=", 2)
 		if len(parts) == 1 {
@@ -194,7 +201,7 @@ func (m *MountOpt) Set(value string) error {
 				return fmt.Errorf("invalid value for writable: %s", value)
 			}
 		case "bind-propagation":
-			mount.BindOptions.Propagation = swarm.MountPropagation(strings.ToUpper(value))
+			bindOptions().Propagation = swarm.MountPropagation(strings.ToUpper(value))
 		case "volume-populate":
 			volumeOptions().Populate, err = strconv.ParseBool(value)
 			if err != nil {
@@ -210,7 +217,7 @@ func (m *MountOpt) Set(value string) error {
 			}
 			setValueOnMap(volumeOptions().DriverConfig.Options, value)
 		default:
-			return fmt.Errorf("unexpected key '%s' in '%s'", key, value)
+			return fmt.Errorf("unexpected key '%s' in '%s'", key, field)
 		}
 	}
 
@@ -447,7 +454,6 @@ func addServiceFlags(cmd *cobra.Command, opts *serviceOptions) {
 	flags.Var(&opts.resources.resMemBytes, flagReserveMemory, "Reserve Memory")
 	flags.Var(&opts.stopGrace, flagStopGracePeriod, "Time to wait before force killing a container")
 
-	flags.StringVar(&opts.mode, flagMode, "replicated", "Service mode (replicated or global)")
 	flags.Var(&opts.replicas, flagReplicas, "Number of tasks")
 
 	flags.StringVar(&opts.restartPolicy.condition, flagRestartCondition, "", "Restart when condition is met (none, on_failure, or any)")

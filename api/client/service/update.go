@@ -45,7 +45,7 @@ func runUpdate(dockerCli *client.DockerCli, flags *pflag.FlagSet, serviceID stri
 		return err
 	}
 
-	err = updateService(&service.Spec, flags)
+	err = updateService(flags, &service.Spec)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func runUpdate(dockerCli *client.DockerCli, flags *pflag.FlagSet, serviceID stri
 	return nil
 }
 
-func updateService(spec *swarm.ServiceSpec, flags *pflag.FlagSet) error {
+func updateService(flags *pflag.FlagSet, spec *swarm.ServiceSpec) error {
 
 	updateString := func(flag string, field *string) {
 		if flags.Changed(flag) {
@@ -123,7 +123,7 @@ func updateService(spec *swarm.ServiceSpec, flags *pflag.FlagSet) error {
 	updateLabels(flags, &spec.Labels)
 	updateString("image", &cspec.Image)
 	updateSlice("command", &cspec.Command)
-	updateSlice("arg", &cspec.Command)
+	updateSlice("arg", &cspec.Args)
 	updateListOpts("env", &cspec.Env)
 	updateString("workdir", &cspec.Dir)
 	updateString(flagUser, &cspec.User)
@@ -162,7 +162,7 @@ func updateService(spec *swarm.ServiceSpec, flags *pflag.FlagSet) error {
 		updateSlice(flagConstraint, &task.Placement.Constraints)
 	}
 
-	if err := updateMode(flags, &spec.Mode); err != nil {
+	if err := updateReplicas(flags, &spec.Mode); err != nil {
 		return err
 	}
 
@@ -250,40 +250,14 @@ func updateNetworks(flags *pflag.FlagSet, attachments *[]swarm.NetworkAttachment
 	*attachments = localAttachments
 }
 
-func updateMode(flags *pflag.FlagSet, serviceMode *swarm.ServiceMode) error {
-	if !flags.Changed(flagMode) && !flags.Changed(flagReplicas) {
+func updateReplicas(flags *pflag.FlagSet, serviceMode *swarm.ServiceMode) error {
+	if !flags.Changed(flagReplicas) {
 		return nil
 	}
 
-	var mode string
-	if flags.Changed(flagMode) {
-		mode, _ = flags.GetString(flagMode)
-	}
-
-	if !(mode == "replicated" || serviceMode.Replicated != nil) && flags.Changed(flagReplicas) {
+	if serviceMode.Replicated == nil {
 		return fmt.Errorf("replicas can only be used with replicated mode")
 	}
-
-	if mode == "global" {
-		serviceMode.Replicated = nil
-		serviceMode.Global = &swarm.GlobalService{}
-		return nil
-	}
-
-	if flags.Changed(flagReplicas) {
-		replicas := flags.Lookup(flagReplicas).Value.(*Uint64Opt).Value()
-		serviceMode.Replicated = &swarm.ReplicatedService{Replicas: replicas}
-		serviceMode.Global = nil
-		return nil
-	}
-
-	if mode == "replicated" {
-		if serviceMode.Replicated != nil {
-			return nil
-		}
-		serviceMode.Replicated = &swarm.ReplicatedService{Replicas: &DefaultReplicas}
-		serviceMode.Global = nil
-	}
-
+	serviceMode.Replicated.Replicas = flags.Lookup(flagReplicas).Value.(*Uint64Opt).Value()
 	return nil
 }

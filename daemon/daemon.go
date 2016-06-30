@@ -117,11 +117,13 @@ func (daemon *Daemon) restore() error {
 		return err
 	}
 
+	containerCount := 0
 	for _, v := range dir {
 		id := v.Name()
 		container, err := daemon.load(id)
 		if !debug && logrus.GetLevel() == logrus.InfoLevel {
 			fmt.Print(".")
+			containerCount++
 		}
 		if err != nil {
 			logrus.Errorf("Failed to load container %v: %v", id, err)
@@ -306,7 +308,7 @@ func (daemon *Daemon) restore() error {
 	group.Wait()
 
 	if !debug {
-		if logrus.GetLevel() == logrus.InfoLevel {
+		if logrus.GetLevel() == logrus.InfoLevel && containerCount > 0 {
 			fmt.Println()
 		}
 		logrus.Info("Loading containers: done.")
@@ -384,6 +386,11 @@ func (daemon *Daemon) IsSwarmCompatible() error {
 // requests from the webserver.
 func NewDaemon(config *Config, registryService registry.Service, containerdRemote libcontainerd.Remote) (daemon *Daemon, err error) {
 	setDefaultMtu(config)
+
+	// Ensure that we have a correct root key limit for launching containers.
+	if err := ModifyRootKeyLimit(); err != nil {
+		logrus.Warnf("unable to modify root key limit, number of containers could be limitied by this quota: %v", err)
+	}
 
 	// Ensure we have compatible and valid configuration options
 	if err := verifyDaemonSettings(config); err != nil {
